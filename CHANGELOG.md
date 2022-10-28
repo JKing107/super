@@ -1,5 +1,62 @@
 # CHANGELOG
 
+## [3.0b2]
+
+2022-10-22
+
+- Renamed the option to prefer `jamfHelper` dialogs and notifications to `--prefer-jamf-helper`. Likewise, the managed preference key has also been renamed to `PreferJamfHelper`.
+- Resolved issue with invalid logging function reference (Thanks to @iDrewbs!)
+- The `<key>PushMajorUpgrade</key>` is now in the All Options config profile examples.
+- `super` 3.0b2 SHA-256: a840e6dfeca4ece84b79969e41f2c077fc671f5c71893a23d65030a5c1c77f9c
+
+## [3.0b1]
+
+2022-10-21
+
+- New support for macOS Ventura 13.
+- New `--push-major-upgrade` option (macOS 11.5 or later and managed by Jamf Pro) attempts to perform a major macOS upgrade via MDM command.
+- New "Software Update Failed" notification when for when things go wrong after the user has already been notified to expect a restart... keep reading for further explanation...
+- New `SuperStauts` key in the `/Library/Management/super/com.macjutsu.super.plist` maintains the current status of `super`. This allows for easy querying of the genreral `super` status without viewing the entire `super.log`. Here is a [Jamf Pro Extension Attribute script](https://github.com/Macjutsu/super/blob/3.0b1/Super-Friends/super-Status-Jamf-Pro-EA.sh) to collect this when inventory is updated.
+- New `SuperPending` key in the `/Library/Management/super/com.macjutsu.super.plist` maintains the pending restart date of `super`. This allows for easy querying of the genreral `super` pending restart date without viewing the entire `super.log`. Here is a [Jamf Pro Extension Attribute script](https://github.com/Macjutsu/super/blob/3.0b1/Super-Friends/super-Pending-Date-Jamf-Pro-EA.sh) to collect this when inventory is updated.
+- New `super` [removal script](https://github.com/Macjutsu/super/blob/3.0b1/Super-Friends/Remove-super.sh) stops any active `super` instance, super helpers, and removes all `super` items (excluding helpers).
+- New local log `/Library/Management/super/check.log` maintains the last `softwareupdate` check results.
+- New local log `/Library/Management/super/asu.log` keeps a history of `softwareupdate` download and installation attempts.
+- Significant internal rearchitecting to support major macOS upgrades **(more upgrade workflows coming soon including full installer options)**.
+- Significant internal rearchitecting to accommodate update/upgrade workflows that hang. Specifically, if any update/upgrade times out after 600 seconds of inactivity, `super` automatically tries again later. (Thanks to @scriptingosx and #scripting on MacAdmins Slack!)
+- Significant internal rearchitecting to harden `super` against run-time errors. Specifically, `super` only exits due to errors during the initial installation and startup. After installation and startup is complete, if any error occurs, `super` automatically restarts later, even if the system is unexpectedly restarted.
+- Rebuilt initial installation and startup workflow reports all exit errors to the `super` parent process (Terminal, Jamf Pro, etc.). 
+- Rebuilt initial installation and startup workflow only installs dependencies when required. For example, the `--prefer-jamf` option prevents the automatic installation of [IBM Notifier](https://github.com/IBM/mac-ibm-notifications).
+- Rebuilt update/upgrade checking workflow is instantaneous if a check has already occurred in the last 6 hours (the default for the built-in automatic `softwareupdate` check). (Thanks to @grahampugh for this suggestion!)
+- Rebuilt update/upgrade checking workflow times out after 120 seconds of inactivity, in which case `super` automatically tries again later.
+- Misbehaving `softwareudated` processes are automatically punished with a "kickstart" restart.
+- Improvements to `--verbose-mode` now shows more detail including (when appropriate) the active script function name.
+- Improvements to `--reset-super` now resets cached update results and all deferral counters.
+- Improvements to `--test-mode` now properly resets deferral counters.
+- Reliability improvements to the Jamf Pro API token request workflow.
+- Various improvements to general logging including new details regarding system architecture, version, and expected update/upgrade workflows.
+- Various improvements to script commenting including new mark directives that appear in supported code editors. (Thanks to @scriptingosx for inspiration.)
+- Starting with `super` 3.0b1 checksums are provided with each release...
+- `super` 3.0b1 SHA-256: e1b16ed4dd307fa4a19cf987bddd2010dee0ec2cdd33acd25d2b4320507f2136
+
+## [2.0]
+
+2022-09-02
+
+- The [S.U.P.E.R.M.A.N. Wiki](https://github.com/Macjutsu/super/wiki) is finally helpful!
+- Detailed help removed from within the `super` script, because...
+- If there is a current GUI user the `--help` option now automatically opens the [S.U.P.E.R.M.A.N. Wiki](https://github.com/Macjutsu/super/wiki). If there is no current GUI user this option shows basic usage.
+- Spellcheck! So. Many. Typos.
+
+## [2.0rc1]
+
+2022-08-23
+
+- Validated against the late August 2022 Apple Security Updates.
+- The Jamf Pro API token is now invalidated when `super` exits (previously it was only deleted from local memory).
+- You can now set custom dialog timeout text for both the "Ask for Update" and "Soft Deadline" dialogs in the `setDisplayLanguage()` function.
+- IBM Notifier [Version 2.8.0 Build 87](https://github.com/IBM/mac-ibm-notifications/releases/tag/v-2.8.0-b-87) is automatically downloaded and installed in the $superFOLDER.
+- Resolved an issue where deleting account credentials did not set the appropriate update workflow.
+
 ## [2.0b2]
 
 2022-08-01
@@ -15,7 +72,7 @@
 
 2022-06-16
 
-- There are so many new features in `super` 2.x that any existing scripts, Configuration Profiles, or other workflows designed for `super` 1.x are not compatible with `super` 2.x. Plese review `sudo super --help` in addition to this change log!
+- There are so many new features in `super` 2.x that any existing scripts, Configuration Profiles, or other workflows designed for `super` 1.x are not compatible with `super` 2.x. Please review `sudo super --help` in addition to this change log!
 - All option flags with a variable value now require the use of equals ( = ). For example, `--default-defer=3600`. However, quoting is no longer required for option variables (unless they use a reserved character like "space").
 - When running `super` via Jamf Pro Policy, you can now use script Parameter Values for configuration. However, you can only use one option per Parameter Value, so you are limited to a total of 8 options with this method. Obviously, you should consider using a [Configuration Profile](https://github.com/Macjutsu/super/blob/main/All_Managed_Options_com.macjutsu.super.plist) for setting more options.
 - New `--recheck-defer=seconds` option allows `super` to re-run on a regular basis even when no Apple software updates are found. Thus, `super` "remains active" to enforce ongoing Apple software update checking.
@@ -23,7 +80,7 @@
 - New `--focus-days=number`, `--soft-days=number`, and `--hard-days=number` options allow you specify a maximum number of days to defer after an Apple software update is found.
 - New `--zero-day=YYYY-MM-DD:hh:mm` option allows you to specify a manual day zero instead of relying on the default automatic zero day, which is based on when new Apple system updates are available.
 - Maximum deferral count and maximum deferral days deadlines can now be restarted with the `--restart-count` and `--restart-days` options.
-- Multiple options of a simliar type can now be deleted with a single option, this includes; `--delete-deferrals`, `--delete-counts`, `--delete-days`, `--delete-dates`, and `--delete-accounts`.
+- Multiple options of a similar type can now be deleted with a single option, this includes; `--delete-deferrals`, `--delete-counts`, `--delete-days`, `--delete-dates`, and `--delete-accounts`.
 - Improved icon scaling when using the `--icon-size-ibm` option courtesy of...
 - IBM Notifier [Version 2.7.1 Build 81](https://github.com/IBM/mac-ibm-notifications/releases/tag/v-2.7.1-b-81) is automatically downloaded and installed in the $superFOLDER.
 - As a default behavior, the `--policy-triggers` option now waits for restart-required system updates to become available before running any Jamf Policy Triggers. Alternately, you can combine this option with the `--skip-updates` option to run the Jamf Policy triggers without waiting for a restart-required system update.
